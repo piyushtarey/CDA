@@ -1,0 +1,796 @@
+openapi: 3.0.0
+info:
+  title: SOVD POC API
+  description: This is a simple API for SOVD
+  version: 1.2.1
+servers:
+  - url: https://virtserver.swaggerhub.com/TCS-SOVD/API_POC/1.1.1
+    description: OpenAPI for SOVD
+paths:
+  /ECUs:
+    get:
+      summary: Gets the list of ECUs that this SOVD instance can communicate with
+      description: |
+        For each “Entity-Collection” (Domains, HPCs, ECUs, Apps, Functions) via GET, the list of Entities in that collection can be requested. 
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    Type:
+                      type: string
+                      enum:
+                        - ecu
+                        - hpc
+                    href:
+                      type: string
+                default:
+                  - name: Gateway Module
+                    Type: ECU
+                    href: /ecus/Gateway
+                  - name: Hybrid Control Module
+                    Type: ECU
+                    href: /ecus/HCM
+                  - name: Body Control Module
+                    Type: ECU
+                    href: /ecus/BCM
+        '400':
+          description: bad input parameter
+  /HPCs:
+    get:
+      summary: Gets the list of HPCs that this SOVD instance can communicate with
+      description: |
+        For each “Entity-Collection” (Domains, HPCs, ECUs, Apps, Functions) via GET, the list of Entities in that collection can be requested. 
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ECUEntity'
+                default:
+                  - name: TCU-HPC
+                    Type: HPC
+                    href: /HPCs/TelematicsHPC
+  /HPCs/component_telematicshpc/faults:
+    get:
+      summary: Gets the list of faults recorded in Telematics ECU
+      description: Provides the faults currently available for an entity. The returned faults may be filtered by their status. In addition, the request can specify if details on the faults shall be included or not.
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        source:
+                          type: string
+                        error_code:
+                          type: string
+                        display_code:
+                          type: string
+                        description:
+                          type: string
+                        status:
+                          type: array
+                          items:
+                            required:
+                              - aggregatedStatus
+                            type: object
+                            properties:
+                              aggregatedStatus:
+                                type: string
+                            additionalProperties:
+                              type: string
+        '400':
+          description: bad input parameter
+  /HPCs/component_telematicshpc/data/HPC_System_Configuration:
+    get:
+      summary: Gets the Telematics System Configuration Parameters
+      description: Retrieves the value of a single data resource
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                description: The static HPC system settings information
+                allOf:
+                  - description: A Data resource
+                    allOf:
+                      - required:
+                          - id
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          name:
+                            type: string
+                        description: A generic resource specifying the list of basic properties of all resources exposed by this API.
+                      - required:
+                          - category
+                        type: object
+                        properties:
+                          category:
+                            type: string
+                            enum:
+                              - currentData
+                              - identData
+                              - sysInfo
+                          group:
+                            type: string
+                          data:
+                            description: A value of any type supported by the JSON type system or standardized SOVD types.
+                            oneOf:
+                              - type: string
+                              - type: number
+                              - type: integer
+                              - type: boolean
+                              - type: array
+                                items: {}
+                              - type: object
+                          error:
+                            type: array
+                            description: A list of data-related errors with respective pointers to the source data values the individual errors are related to.
+                            items:
+                              required:
+                                - errorCode
+                                - status
+                              type: object
+                              properties:
+                                path:
+                                  type: string
+                                  format: JSONPath
+                                errorCode:
+                                  type: string
+                                status:
+                                  type: string
+                                  enum:
+                                    - surrogateValue
+                                    - faulty
+                                  x-sovd-translation-id: 34567
+                              description: Error information provided in addition to returned data values to indicate if some of the values are potentially erroneous or surrogate values.
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          os_name:
+                            type: string
+                            example: Linux
+                          os_version:
+                            type: string
+                            example: 9.33.443
+                          platform_hardware:
+                            type: string
+                            example: am335x (armv7l)
+                          platform_memory_ram:
+                            maximum: 247440
+                            minimum: 247440
+                            type: number
+                            format: double
+                            x-sovd-unit: KiloBytes
+                          platform_memory_storage:
+                            maximum: 8
+                            minimum: 0
+                            type: number
+                            format: double
+                            x-sovd-unit: GigaBytes
+                          cpu_utilization:
+                            type: number
+                            format: double
+                            x-sovd-unit: Percentage
+                        description: HPC system information data
+        '400':
+          description: bad input parameter
+  /ecus/Gateway/faults:
+    get:
+      summary: Gets the list of faults recorded in Gateway ECU
+      description: Provides the faults currently available for an entity. The returned faults may be filtered by their status. In addition, the request can specify if details on the faults shall be included or not.
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        source:
+                          type: string
+                        error_code:
+                          type: string
+                        display_code:
+                          type: string
+                        description:
+                          type: string
+                        status:
+                          type: array
+                          items:
+                            required:
+                              - aggregatedStatus
+                            type: object
+                            properties:
+                              aggregatedStatus:
+                                type: string
+                            additionalProperties:
+                              type: string
+        '400':
+          description: bad input parameter
+  /ecus/HCM/faults:
+    get:
+      summary: Gets the list of faults recorded in HCM ECU
+      description: Provides the faults currently available for an entity. The returned faults may be filtered by their status. In addition, the request can specify if details on the faults shall be included or not.
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        source:
+                          type: string
+                        error_code:
+                          type: string
+                        display_code:
+                          type: string
+                        description:
+                          type: string
+                        status:
+                          type: array
+                          items:
+                            required:
+                              - aggregatedStatus
+                            type: object
+                            properties:
+                              aggregatedStatus:
+                                type: string
+                            additionalProperties:
+                              type: string
+        '400':
+          description: bad input parameter
+  /ecus/BCM/faults:
+    get:
+      summary: Gets the list of faults recorded in BCM ECU
+      description: Provides the faults currently available for an entity. The returned faults may be filtered by their status. In addition, the request can specify if details on the faults shall be included or not.
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        source:
+                          type: string
+                        error_code:
+                          type: string
+                        display_code:
+                          type: string
+                        description:
+                          type: string
+                        status:
+                          type: array
+                          items:
+                            required:
+                              - aggregatedStatus
+                            type: object
+                            properties:
+                              aggregatedStatus:
+                                type: string
+                            additionalProperties:
+                              type: string
+        '400':
+          description: bad input parameter
+  /components/HCM/data/data_idleregulationintegralcorrection:
+    get:
+      summary: Gets Idle Regulation Integral Correction for Hybrid Control Module
+      description: Gets Idle Regulation Integral Correction for Hybrid Control Module
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                maximum: 1000
+                minimum: -1000
+                type: number
+                format: double
+                x-sovd-unit:
+                  display_name: N m
+        '400':
+          description: bad input parameter
+  /components/HCM/data/data_coolanttemperature:
+    get:
+      summary: Gets Coolant Temperature for Hybrid Control Module
+      description: Gets Coolant Temperature for Hybrid Control Module
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                maximum: 200
+                minimum: -200
+                type: number
+                format: double
+                x-sovd-unit:
+                  display_name: °C
+        '400':
+          description: bad input parameter
+  /components/HCM/data/data_enginespeed:
+    get:
+      summary: Gets Engine Speed for Hybrid Control Module
+      description: Gets Engine Speed for Hybrid Control Module
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                maximum: 5000
+                minimum: 0
+                type: integer
+                format: int32
+                x-sovd-unit: rpm
+        '400':
+          description: bad input parameter
+  /components/HCM/data/data_airfuelratiocompensationbank1:
+    get:
+      summary: Gets Air Fuel Ratio Compnensatio for Bank 1 for Hybrid Control Module
+      description: Gets Air Fuel Ratio Compnensatio for Bank 1 for Hybrid Control Module
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                maximum: 200
+                minimum: 0
+                type: number
+                format: double
+                x-sovd-unit: '%'
+        '400':
+          description: bad input parameter
+  /components/HCM/operations/fuelinjectiontest/executions:
+    post:
+      summary: Gets Fuel Injection Test  for Hybrid Control Module
+      description: Gets Fuel Injection Test for Hybrid Control Module
+      requestBody:
+        description: ''
+        required: true
+        content:
+          application/json:
+            schema:
+              type: number
+              format: integer
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  EngineSpeed:
+                    maximum: 5000
+                    minimum: 0
+                    type: integer
+                    format: int32
+                    x-sovd-unit: rpm
+                  AirFuleRatioCompensationBank1:
+                    maximum: 200
+                    minimum: 0
+                    type: number
+                    format: double
+                    x-sovd-unit: '%'
+        '400':
+          description: bad input parameter
+components:
+  schemas:
+    IdleRegulationIntegralCorrection:
+      maximum: 1000
+      minimum: -1000
+      type: number
+      format: double
+      x-sovd-unit:
+        display_name: N m
+    CoolantTemperature:
+      maximum: 200
+      minimum: -200
+      type: number
+      format: double
+      x-sovd-unit:
+        display_name: °C
+    EngineSpeed:
+      maximum: 5000
+      minimum: 0
+      type: integer
+      format: int32
+      x-sovd-unit:
+        display_name: rpm
+    AirFuleRatioCompensationBank1:
+      maximum: 200
+      minimum: 0
+      type: number
+      format: double
+      x-sovd-unit:
+        display_name: '%'
+    FuelInjectionStatus:
+      type: number
+      format: integer
+    FuelInjectionTestResponse:
+      type: object
+      properties:
+        EngineSpeed:
+          maximum: 5000
+          minimum: 0
+          type: integer
+          format: int32
+          x-sovd-unit:
+            display_name: rpm
+        AirFuleRatioCompensationBank1:
+          maximum: 200
+          minimum: 0
+          type: number
+          format: double
+          x-sovd-unit:
+            display_name: '%'
+    ECUEntity:
+      type: object
+      properties:
+        name:
+          type: string
+        Type:
+          type: string
+          enum:
+            - ecu
+            - hpc
+        href:
+          type: string
+    EntityReference:
+      description: EntityReference type
+      type: object
+      required:
+        - id
+        - name
+        - href
+      properties:
+        id:
+          type: string
+          description: Identifier of the entity
+        name:
+          type: string
+          description: Name of the entity.
+        translation_id:
+          type: string
+          description: Identifier for translating the name
+        href:
+          type: string
+          format: uri-reference
+          description: URI of the subordinate entity including {base_uri}.
+    Fault:
+      type: object
+      properties:
+        source:
+          type: string
+        error_code:
+          type: string
+        display_code:
+          type: string
+        description:
+          type: string
+        status:
+          type: array
+          items:
+            required:
+              - aggregatedStatus
+            type: object
+            properties:
+              aggregatedStatus:
+                type: string
+            additionalProperties:
+              type: string
+    status_map:
+      required:
+        - aggregatedStatus
+      type: object
+      properties:
+        aggregatedStatus:
+          type: string
+      additionalProperties:
+        type: string
+    DataCategories:
+      type: string
+      enum:
+        - currentData
+        - identData
+        - sysInfo
+    GenericResource:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      description: A generic resource specifying the list of basic properties of all resources exposed by this API.
+    AnyValue:
+      description: A value of any type supported by the JSON type system or standardized SOVD types.
+      oneOf:
+        - type: string
+        - type: number
+        - type: integer
+        - type: boolean
+        - type: array
+          items: {}
+        - type: object
+    DataErrorList:
+      type: array
+      description: A list of data-related errors with respective pointers to the source data values the individual errors are related to.
+      items:
+        required:
+          - errorCode
+          - status
+        type: object
+        properties:
+          path:
+            type: string
+            format: JSONPath
+          errorCode:
+            type: string
+          status:
+            type: string
+            enum:
+              - surrogateValue
+              - faulty
+            x-sovd-translation-id: 34567
+        description: Error information provided in addition to returned data values to indicate if some of the values are potentially erroneous or surrogate values.
+    DataError:
+      required:
+        - errorCode
+        - status
+      type: object
+      properties:
+        path:
+          type: string
+          format: JSONPath
+        errorCode:
+          type: string
+        status:
+          type: string
+          enum:
+            - surrogateValue
+            - faulty
+          x-sovd-translation-id: 34567
+      description: Error information provided in addition to returned data values to indicate if some of the values are potentially erroneous or surrogate values.
+    Data:
+      description: A Data resource
+      allOf:
+        - required:
+            - id
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+          description: A generic resource specifying the list of basic properties of all resources exposed by this API.
+        - required:
+            - category
+          type: object
+          properties:
+            category:
+              type: string
+              enum:
+                - currentData
+                - identData
+                - sysInfo
+            group:
+              type: string
+            data:
+              description: A value of any type supported by the JSON type system or standardized SOVD types.
+              oneOf:
+                - type: string
+                - type: number
+                - type: integer
+                - type: boolean
+                - type: array
+                  items: {}
+                - type: object
+            error:
+              type: array
+              description: A list of data-related errors with respective pointers to the source data values the individual errors are related to.
+              items:
+                required:
+                  - errorCode
+                  - status
+                type: object
+                properties:
+                  path:
+                    type: string
+                    format: JSONPath
+                  errorCode:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - surrogateValue
+                      - faulty
+                    x-sovd-translation-id: 34567
+                description: Error information provided in addition to returned data values to indicate if some of the values are potentially erroneous or surrogate values.
+    HPCSystemSettingsInformationResource:
+      description: The static HPC system settings information
+      allOf:
+        - description: A Data resource
+          allOf:
+            - required:
+                - id
+              type: object
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+              description: A generic resource specifying the list of basic properties of all resources exposed by this API.
+            - required:
+                - category
+              type: object
+              properties:
+                category:
+                  type: string
+                  enum:
+                    - currentData
+                    - identData
+                    - sysInfo
+                group:
+                  type: string
+                data:
+                  description: A value of any type supported by the JSON type system or standardized SOVD types.
+                  oneOf:
+                    - type: string
+                    - type: number
+                    - type: integer
+                    - type: boolean
+                    - type: array
+                      items: {}
+                    - type: object
+                error:
+                  type: array
+                  description: A list of data-related errors with respective pointers to the source data values the individual errors are related to.
+                  items:
+                    required:
+                      - errorCode
+                      - status
+                    type: object
+                    properties:
+                      path:
+                        type: string
+                        format: JSONPath
+                      errorCode:
+                        type: string
+                      status:
+                        type: string
+                        enum:
+                          - surrogateValue
+                          - faulty
+                        x-sovd-translation-id: 34567
+                    description: Error information provided in addition to returned data values to indicate if some of the values are potentially erroneous or surrogate values.
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                os_name:
+                  type: string
+                  example: Linux
+                os_version:
+                  type: string
+                  example: 9.33.443
+                platform_hardware:
+                  type: string
+                  example: am335x (armv7l)
+                platform_memory_ram:
+                  maximum: 247440
+                  minimum: 247440
+                  type: number
+                  format: double
+                  x-sovd-unit: KiloBytes
+                platform_memory_storage:
+                  maximum: 8
+                  minimum: 0
+                  type: number
+                  format: double
+                  x-sovd-unit: GigaBytes
+                cpu_utilization:
+                  type: number
+                  format: double
+                  x-sovd-unit: Percentage
+              description: HPC system information data
+    HPCSystemInformationData:
+      type: object
+      properties:
+        os_name:
+          type: string
+          example: Linux
+        os_version:
+          type: string
+          example: 9.33.443
+        platform_hardware:
+          type: string
+          example: am335x (armv7l)
+        platform_memory_ram:
+          maximum: 247440
+          minimum: 247440
+          type: number
+          format: double
+          x-sovd-unit: KiloBytes
+        platform_memory_storage:
+          maximum: 8
+          minimum: 0
+          type: number
+          format: double
+          x-sovd-unit: GigaBytes
+        cpu_utilization:
+          type: number
+          format: double
+          x-sovd-unit: Percentage
+      description: HPC system information data
+    inline_response_200:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              source:
+                type: string
+              error_code:
+                type: string
+              display_code:
+                type: string
+              description:
+                type: string
+              status:
+                type: array
+                items:
+                  required:
+                    - aggregatedStatus
+                  type: object
+                  properties:
+                    aggregatedStatus:
+                      type: string
+                  additionalProperties:
+                    type: string
